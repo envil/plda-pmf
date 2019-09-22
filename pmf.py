@@ -2,7 +2,6 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 from tensorflow_probability import edward2 as ed
 
@@ -12,11 +11,11 @@ tfd = tfp.distributions
 
 N = 6040  # number of users
 M = 3952  # number of movies
-D = 5  # Latent factors
+D = 10  # Latent factors
 stddv_datapoints = 0.5
 
 
-def probabilistic_pca(data_dim, latent_dim, num_datapoints, stddv_datapoints):  # (unmodeled) data
+def probabilistic_matrix_factorization(data_dim, latent_dim, num_datapoints, stddv_datapoints):  # (unmodeled) data
     w = ed.Normal(loc=tf.zeros([data_dim, latent_dim]),
                   scale=2.0 * tf.ones([data_dim, latent_dim]),
                   name="w")  # parameter
@@ -29,7 +28,7 @@ def probabilistic_pca(data_dim, latent_dim, num_datapoints, stddv_datapoints):  
     return x, (w, z)
 
 
-log_joint = ed.make_log_joint_fn(probabilistic_pca)
+log_joint = ed.make_log_joint_fn(probabilistic_matrix_factorization)
 
 
 def read_data():
@@ -44,17 +43,17 @@ def read_data():
     return data
 
 
-def get_indicators(N, M, prob_std=0.8):
-    ind = np.random.binomial(1, prob_std, (N, M))
-    return ind
+# def get_indicators(N, M, prob_std=0.8):
+#     ind = np.random.binomial(1, prob_std, (N, M))
+#     return ind
 
 
 data = read_data()
 
-I = get_indicators(N, M)
+# I = get_indicators(N, M)
 
-train_data = np.where(I == 1, data, np.zeros((N, M)))
-test_data = np.where(I == 0, data, np.zeros((N, M)))
+# train_data = np.where(I == 1, data, np.zeros((N, M)))
+# test_data = np.where(I == 0, data, np.zeros((N, M)))
 tf.reset_default_graph()
 
 
@@ -127,7 +126,7 @@ plt.show()
 
 with ed.interception(ed.make_value_setter(w=w_mean_inferred,
                                           z=z_mean_inferred)):
-    generate = probabilistic_pca(
+    generate = probabilistic_matrix_factorization(
         data_dim=N, latent_dim=D,
         num_datapoints=M, stddv_datapoints=stddv_datapoints)
 
